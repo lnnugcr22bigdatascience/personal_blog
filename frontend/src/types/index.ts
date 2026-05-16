@@ -16,6 +16,9 @@ export interface Article {
   views: number;
   author_name: string;
   category_name: string | null;
+  status: 'draft' | 'published';
+  like_count: number;
+  liked: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -37,4 +40,9 @@ export interface ApiResponse<T> {
   code: number;
   message: string;
   data: T;
+}
+
+export interface ArchiveMonth {
+  yearMonth: string;
+  count: number;
 }

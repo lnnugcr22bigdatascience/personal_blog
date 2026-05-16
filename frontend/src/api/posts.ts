@@ -5,6 +5,8 @@ export async function getPosts(params: {
   pageSize?: number;
   category?: number;
   keyword?: string;
+  status?: string;
+  month?: string;
 }) {
   const res = await client.get('/posts', { params });
   return res.data;
@@ -42,5 +44,20 @@ export async function updatePost(
 
 export async function deletePost(id: number) {
   const res = await client.delete(`/posts/${id}`);
+  return res.data;
+}
+
+export async function getArchives() {
+  const res = await client.get('/posts/archives');
+  return res.data;
+}
+
+export async function likePost(id: number) {
+  const res = await client.post(`/posts/${id}/like`);
+  return res.data;
+}
+
+export async function unlikePost(id: number) {
+  const res = await client.delete(`/posts/${id}/like`);
   return res.data;
 }
