@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { createPost, updatePost, getPost } from '../api/posts';
 import { getCategories } from '../api/categories';
@@ -15,10 +15,12 @@ export default function WritePage() {
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const [tagsInput, setTagsInput] = useState('');
   const [cover, setCover] = useState('');
+  const [status, setStatus] = useState<'draft' | 'published'>('published');
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(isEdit);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     getCategories().then((res) => {
@@ -36,6 +38,7 @@ export default function WritePage() {
         setCategoryId(a.category_id ?? undefined);
         setTagsInput(a.tags?.join(', ') || '');
         setCover(a.cover || '');
+        setStatus(a.status || 'published');
       }
       setLoading(false);
     });
@@ -60,6 +63,7 @@ export default function WritePage() {
         cover: cover.trim() || undefined,
         category_id: categoryId,
         tags: tags.length > 0 ? tags : undefined,
+        status,
       };
 
       if (isEdit) {
@@ -83,7 +87,7 @@ export default function WritePage() {
 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
+      <form ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <input
             type="text"
@@ -120,13 +124,22 @@ export default function WritePage() {
 
         <MarkdownEditor value={content} onChange={setContent} />
 
-        <div className="mt-6">
+        <div className="flex gap-3 mt-6">
           <button
-            type="submit"
+            type="button"
+            onClick={() => { setStatus('draft'); formRef.current?.requestSubmit(); }}
+            disabled={saving}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          >
+            {saving && status === 'draft' ? '保存中...' : '保存草稿'}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setStatus('published'); formRef.current?.requestSubmit(); }}
             disabled={saving}
             className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
-            {saving ? '保存中...' : '保存'}
+            {saving && status === 'published' ? '发布中...' : '发布'}
           </button>
         </div>
       </form>
