@@ -46,3 +46,12 @@ export interface ArchiveMonth {
   yearMonth: string;
   count: number;
 }
+
+export interface Comment {
+  id: number;
+  content: string;
+  user_id: number;
+  username: string;
+  article_id: number;
+  created_at: string;
+}

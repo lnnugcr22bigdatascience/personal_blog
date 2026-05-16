@@ -61,3 +61,18 @@ export async function unlikePost(id: number) {
   const res = await client.delete(`/posts/${id}/like`);
   return res.data;
 }
+
+export async function getComments(articleId: number) {
+  const res = await client.get(`/posts/${articleId}/comments`);
+  return res.data;
+}
+
+export async function createComment(articleId: number, content: string) {
+  const res = await client.post(`/posts/${articleId}/comments`, { content });
+  return res.data;
+}
+
+export async function deleteComment(commentId: number) {
+  const res = await client.delete(`/comments/${commentId}`);
+  return res.data;
+}
