@@ -2,6 +2,8 @@
 
 A full-stack personal blog built with **React + Express + TypeScript + MySQL**.
 
+[简体中文](README.zh.md)
+
 ## Tech Stack
 
 | Layer | Technology |

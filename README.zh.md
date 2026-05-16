@@ -2,6 +2,8 @@
 
 基于 **React + Express + TypeScript + MySQL** 的全栈个人博客。
 
+[English](README.md)
+
 ## 技术栈
 
 | 层级 | 技术 |
