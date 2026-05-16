@@ -17,6 +17,7 @@ export default function HomePage() {
   const page = Number(searchParams.get('page')) || 1;
   const category = searchParams.get('category') ? Number(searchParams.get('category')) : undefined;
   const keyword = searchParams.get('keyword') || undefined;
+  const month = searchParams.get('month') || undefined;
 
   useEffect(() => {
     getCategories().then((res) => {
@@ -26,7 +27,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setLoading(true);
-    getPosts({ page, pageSize: 10, category, keyword })
+    getPosts({ page, pageSize: 10, category, keyword, status: 'published', month })
       .then((res) => {
         if (res.code === 0) {
           setArticles(res.data.items);
@@ -34,7 +35,7 @@ export default function HomePage() {
         }
       })
       .finally(() => setLoading(false));
-  }, [page, category, keyword]);
+  }, [page, category, keyword, month]);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();

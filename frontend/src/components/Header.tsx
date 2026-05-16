@@ -11,6 +11,7 @@ export default function Header() {
           MyBlog
         </Link>
         <nav className="flex items-center gap-4 text-sm">
+          <Link to="/archives" className="text-gray-600 hover:text-gray-900">归档</Link>
           {user ? (
             <>
               <Link to="/write" className="text-indigo-600 hover:text-indigo-800">
