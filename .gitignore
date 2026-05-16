@@ -2,3 +2,7 @@ node_modules/
 dist/
 .env
 .superpowers/
+docs/
+PRD.md
+database.md
+md_editor.md
