@@ -15,6 +15,8 @@ router.get(
   ArticleController.list
 );
 
+router.get('/archives', ArticleController.archives);
+
 router.get('/:id', ArticleController.getById);
 
 router.post(

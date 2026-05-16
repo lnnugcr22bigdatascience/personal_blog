@@ -16,6 +16,7 @@ export interface ArticleRow {
   category_name?: string;
   status?: string;
   like_count?: number;
+  liked?: boolean;
 }
 
 export const ArticleModel = {
