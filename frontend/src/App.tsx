@@ -8,6 +8,7 @@ import WritePage from './pages/WritePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import ArchivesPage from './pages/ArchivesPage';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Header />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/archives" element={<ArchivesPage />} />
             <Route path="/post/:id" element={<PostDetailPage />} />
             <Route path="/write" element={<ProtectedRoute><WritePage /></ProtectedRoute>} />
             <Route path="/write/:id" element={<ProtectedRoute><WritePage /></ProtectedRoute>} />
