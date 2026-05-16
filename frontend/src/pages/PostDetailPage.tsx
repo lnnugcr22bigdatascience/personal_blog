@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { getPost, deletePost } from '../api/posts';
+import { getPost, deletePost, likePost, unlikePost } from '../api/posts';
 import { useAuth } from '../context/AuthContext';
 import type { Article } from '../types';
 
@@ -14,19 +14,45 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!id) return;
     getPost(Number(id))
       .then((res) => {
-        if (res.code === 0) setArticle(res.data);
-        else setError(res.message);
+        if (res.code === 0) {
+          setArticle(res.data);
+          setLiked(res.data.liked ?? false);
+          setLikeCount(res.data.like_count ?? 0);
+        } else setError(res.message);
       })
       .catch(() => setError('加载失败'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleToggleLike() {
+    if (!user) {
+      navigate('/login?redirect=' + encodeURIComponent(location.pathname));
+      return;
+    }
+    try {
+      if (liked) {
+        const res = await unlikePost(article!.id);
+        setLiked(false);
+        setLikeCount(res.data.like_count);
+      } else {
+        const res = await likePost(article!.id);
+        setLiked(true);
+        setLikeCount(res.data.like_count);
+      }
+    } catch {
+      // silently ignore
+    }
+  }
 
   async function handleDelete() {
     if (!article || !window.confirm('确定删除这篇文章？')) return;
@@ -55,6 +81,9 @@ export default function PostDetailPage() {
         <span>{article.author_name}</span>
         <span>{new Date(article.created_at).toLocaleDateString('zh-CN')}</span>
         <span>{article.views} 阅读</span>
+        <button onClick={handleToggleLike} className={`inline-flex items-center gap-1 ${liked ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 transition-colors`}>
+          {liked ? '❤️' : '🤍'} {likeCount}
+        </button>
         {article.category_name && (
           <span className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full text-xs">
             {article.category_name}
