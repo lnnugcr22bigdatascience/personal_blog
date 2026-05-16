@@ -4,9 +4,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { getPost, deletePost, likePost, unlikePost } from '../api/posts';
+import { getPost, deletePost, likePost, unlikePost, getComments, createComment, deleteComment } from '../api/posts';
 import { useAuth } from '../context/AuthContext';
-import type { Article } from '../types';
+import type { Article, Comment } from '../types';
 
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +16,9 @@ export default function PostDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,6 +31,9 @@ export default function PostDetailPage() {
           setArticle(res.data);
           setLiked(res.data.liked ?? false);
           setLikeCount(res.data.like_count ?? 0);
+          getComments(Number(id)).then((res2) => {
+            if (res2.code === 0) setComments(res2.data);
+          });
         } else setError(res.message);
       })
       .catch(() => setError('加载失败'))
@@ -51,6 +57,32 @@ export default function PostDetailPage() {
       }
     } catch {
       // silently ignore
+    }
+  }
+
+  async function handleAddComment() {
+    if (!commentText.trim()) return;
+    setCommentSubmitting(true);
+    try {
+      const res = await createComment(article!.id, commentText.trim());
+      if (res.code === 0) {
+        setComments([...comments, res.data]);
+        setCommentText('');
+      }
+    } catch {
+      // silently handle
+    } finally {
+      setCommentSubmitting(false);
+    }
+  }
+
+  async function handleDeleteComment(commentId: number) {
+    if (!window.confirm('确定删除这条评论？')) return;
+    try {
+      await deleteComment(commentId);
+      setComments(comments.filter((c) => c.id !== commentId));
+    } catch {
+      // silently handle
     }
   }
 
@@ -147,6 +179,65 @@ export default function PostDetailPage() {
         >
           {article.content}
         </ReactMarkdown>
+      </div>
+
+      {/* Comments section */}
+      <div className="mt-12 border-t pt-8">
+        <h2 className="text-xl font-bold mb-6">评论 ({comments.length})</h2>
+
+        {user ? (
+          <div className="mb-8">
+            <textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="写下你的评论..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"
+              rows={3}
+            />
+            <button
+              onClick={handleAddComment}
+              disabled={commentSubmitting || !commentText.trim()}
+              className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm"
+            >
+              {commentSubmitting ? '提交中...' : '发表评论'}
+            </button>
+          </div>
+        ) : (
+          <p className="mb-8 text-sm text-gray-500">
+            <Link to={`/login?redirect=${encodeURIComponent(location.pathname)}`} className="text-indigo-600 hover:underline">
+              登录
+            </Link>
+            后发表评论
+          </p>
+        )}
+
+        {comments.length === 0 ? (
+          <p className="text-gray-400 text-sm">暂无评论，来写第一条吧</p>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((c) => (
+              <div key={c.id} className="p-4 bg-white rounded-lg border border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm text-gray-900">{c.username}</span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(c.created_at).toLocaleDateString('zh-CN')} {new Date(c.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  {(user?.id === c.user_id || user?.id === article?.author_id) && (
+                    <button
+                      onClick={() => handleDeleteComment(c.id)}
+                      className="text-xs text-gray-400 hover:text-red-500"
+                    >
+                      删除
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{c.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
